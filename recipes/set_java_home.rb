@@ -16,18 +16,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ruby_block  "set-env-java-home" do
-  block do
-    ENV["JAVA_HOME"] = node['java']['java_home']
+if (node['java'].has_key?('java_home') && !node['java']['java_home'].empty?)
+
+  ruby_block  "set-env-java-home" do
+    block do
+      ENV["JAVA_HOME"] = node['java']['java_home']
+    end
+    not_if { ENV["JAVA_HOME"] == node['java']['java_home'] }
   end
-  not_if { ENV["JAVA_HOME"] == node['java']['java_home'] }
-end
 
-directory "/etc/profile.d" do
-  mode 00755
-end
+  directory "/etc/profile.d" do
+    mode 00755
+  end
 
-file "/etc/profile.d/jdk.sh" do
-  content "export JAVA_HOME=#{node['java']['java_home']}"
-  mode 00755
+  file "/etc/profile.d/jdk.sh" do
+    content "export JAVA_HOME=#{node['java']['java_home']}"
+    mode 00755
+  end
+
+else
+
+  file "/etc/profile.d/jdk.sh" do
+    action :delete
+  end
+
 end
